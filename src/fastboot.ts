@@ -2,6 +2,7 @@ import * as Sparse from "./sparse";
 import * as common from "./common";
 import {
     FactoryProgressCallback,
+    FlashZipOptions,
     flashZip as flashFactoryZip,
 } from "./factory";
 
@@ -613,16 +614,19 @@ export class FastbootDevice {
      * Equivalent to `fastboot update name.zip`.
      *
      * @param {Blob} blob - Blob containing the zip file to flash.
-     * @param {boolean} wipe - Whether to wipe super and userdata. Equivalent to `fastboot -w`.
+     * @param {boolean} options - Options for flashing. wipe: Whether to wipe super (if skipSuperUpdate is false) and userdata. skipSuperUpdate: skip super image updating.
      * @param {ReconnectCallback} onReconnect - Callback to request device reconnection.
      * @param {FactoryProgressCallback} onProgress - Progress callback for image flashing.
      */
     async flashFactoryZip(
         blob: Blob,
-        wipe: boolean,
+        options: FlashZipOptions = {
+            wipe: false,
+            skipSuperUpdate: false,
+        },
         onReconnect: ReconnectCallback,
         onProgress: FactoryProgressCallback = (_progress) => {}
     ) {
-        return await flashFactoryZip(this, blob, wipe, onReconnect, onProgress);
+        return await flashFactoryZip(this, blob, options, onReconnect, onProgress);
     }
 }

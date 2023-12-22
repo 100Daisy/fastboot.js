@@ -24,6 +24,10 @@ export type FactoryProgressCallback = (
     progress: number
 ) => void;
 
+export type FlashZipOptions = {
+    wipe: boolean,
+    skipSuperUpdate: boolean
+}
 // Images needed for fastbootd
 const BOOT_CRITICAL_IMAGES = [
     "boot",
@@ -201,7 +205,7 @@ async function tryReboot(
 export async function flashZip(
     device: FastbootDevice,
     blob: Blob,
-    wipe: boolean,
+    options: FlashZipOptions,
     onReconnect: ReconnectCallback,
     onProgress: FactoryProgressCallback = (
         _action: string,
@@ -292,7 +296,7 @@ export async function flashZip(
             superName = "super";
         }
 
-        let superAction = wipe ? "wipe" : "flash";
+            let superAction = options.wipe ? "wipe" : "flash";
         onProgress(superAction, "super", 0.0);
         let superBlob = await zipGetData(
             entry,
@@ -306,7 +310,7 @@ export async function flashZip(
             }
         );
         await device.runCommand(
-            `update-super:${superName}${wipe ? ":wipe" : ""}`
+                `update-super:${superName}${options.wipe ? ":wipe" : ""}`
         );
     }
 
@@ -334,7 +338,7 @@ export async function flashZip(
     }
 
     // 8. Wipe userdata
-    if (wipe) {
+    if (options.wipe) {
         await common.runWithTimedProgress(
             onProgress,
             "wipe",
