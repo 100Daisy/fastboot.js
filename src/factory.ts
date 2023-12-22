@@ -252,7 +252,9 @@ export async function flashZip(
     common.logDebug("Loading nested images from zip");
     onProgress("unpack", "images", 0.0);
     let entry = entries.find((e) => e.filename.match(/image-.+\.zip$/));
-    let imagesBlob = await zipGetData(
+    let imagesBlob = blob;
+    if (entry) {
+        imagesBlob = await zipGetData(
         entry!,
         new BlobWriter("application/zip"),
         {
@@ -261,6 +263,8 @@ export async function flashZip(
             },
         }
     );
+    }
+
     let imageReader = new ZipReader(new BlobReader(imagesBlob));
     let imageEntries = await imageReader.getEntries();
 
