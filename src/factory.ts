@@ -255,14 +255,14 @@ export async function flashZip(
     let imagesBlob = blob;
     if (entry) {
         imagesBlob = await zipGetData(
-        entry!,
-        new BlobWriter("application/zip"),
-        {
-            onprogress: (bytes: number, len: number) => {
-                onProgress("unpack", "images", bytes / len);
-            },
-        }
-    );
+            entry!,
+            new BlobWriter("application/zip"),
+            {
+                onprogress: (bytes: number, len: number) => {
+                    onProgress("unpack", "images", bytes / len);
+                },
+            }
+        );
     }
 
     let imageReader = new ZipReader(new BlobReader(imagesBlob));
@@ -295,27 +295,29 @@ export async function flashZip(
             device.reboot("fastboot", true, onReconnect)
         );
 
-        let superName = await device.getVariable("super-partition-name");
-        if (!superName) {
-            superName = "super";
-        }
+        if (!options.skipSuperUpdate) {
+            let superName = await device.getVariable("super-partition-name");
+            if (!superName) {
+                superName = "super";
+            }
 
             let superAction = options.wipe ? "wipe" : "flash";
-        onProgress(superAction, "super", 0.0);
-        let superBlob = await zipGetData(
-            entry,
-            new BlobWriter("application/octet-stream")
-        );
-        await device.upload(
-            superName,
-            await common.readBlobAsBuffer(superBlob),
-            (progress) => {
-                onProgress(superAction, "super", progress);
-            }
-        );
-        await device.runCommand(
+            onProgress(superAction, "super", 0.0);
+            let superBlob = await zipGetData(
+                entry,
+                new BlobWriter("application/octet-stream")
+            );
+            await device.upload(
+                superName,
+                await common.readBlobAsBuffer(superBlob),
+                (progress) => {
+                    onProgress(superAction, "super", progress);
+                }
+            );
+            await device.runCommand(
                 `update-super:${superName}${options.wipe ? ":wipe" : ""}`
-        );
+            );
+        }
     }
 
     // 6. Remaining system images
